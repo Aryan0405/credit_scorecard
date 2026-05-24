@@ -58,7 +58,7 @@ def compute_scores(model,X_test,PDO=20,target_score=600,target_odds=50):
     return scores
 
 if __name__ == "__main__":
-    df = load_and_process_data('application_data.csv', 'bureau_data.csv')
+    df = load_and_process_data('data/raw/application_train.csv', 'data/raw/bureau.csv')
     train, test = perform_time_split(df)
     features_to_woe = ['DAYS_BIRTH','DAYS_EMPLOYED','EXT_SOURCE_1','EXT_SOURCE_2','EXT_SOURCE_3']
     train, test, binning_dict = compute_woe_features(train, test, features_to_woe)
