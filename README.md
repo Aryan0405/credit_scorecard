@@ -41,6 +41,7 @@ The model demonstrated good discriminatory power, with a 71.9% probability of co
 ## Known Limitations
 * No true timestamp existed in the dataset, so the proxy temporal split using DAYS_ID_PUBLISH may not perfectly capture real-world temporal ordering.
 * EXT_SOURCE variables had undocumented feature construction, creating potential leakage risk.
+* EXT_SOURCE features were the strongest predictors but their construction is undocumented by Home Credit. In a real deployment, using unexplainable external scores raises regulatory concerns under model governance frameworks. A production model would require feature provenance documentation before approval.
 * The model intentionally used only five features for interpretability, which may have introduced underfitting.
 * Bureau data was available for only 85.7% of applicants, while thin-file applicants were handled through imputation strategies.
 
