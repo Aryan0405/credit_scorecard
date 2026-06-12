@@ -102,6 +102,20 @@ def build_scorecard_table(
 
     return pd.DataFrame(rows)
 
+def calibrate_intercept(model, true_prevalence):
+    """
+    Correct intercept for class_weight='balanced' distortion.
+    Restores predict_proba() outputs to reflect the true population
+    default rate, not the artificial 50/50 the model was trained on.
+    """
+    effective_odds = 1.0  # 0.5 / (1 - 0.5) under 'balanced' weighting
+    true_odds = true_prevalence / (1 - true_prevalence)
+
+    correction = np.log(true_odds) - np.log(effective_odds)
+    model.intercept_[0] += correction
+
+    return model
+
 if __name__ == "__main__":
     df = load_and_process_data('data/raw/application_train.csv')
 
@@ -125,6 +139,8 @@ if __name__ == "__main__":
     y_train = train['TARGET']
 
     model = train_scorecard_model(X_train, y_train)
+
+    model = calibrate_intercept(model, y_train.mean())
 
     X_test = test[[f + "_WoE" for f in features_to_woe]]
 
@@ -169,3 +185,6 @@ if __name__ == "__main__":
 
     print("Saved outputs/scorecard_results.csv")
     print("Saved outputs/scorecard_points_table.csv")
+    print(f"Train Prevalence: {y_train.mean():.4f}")
+    print(f"Test Target Rate: {test['TARGET'].mean():.4f}")
+    print(f"Mean Prediction Probability: {prediction_probabilities.mean():.4f}")
