@@ -6,6 +6,9 @@ from sklearn.calibration import CalibratedClassifierCV
 from xgboost import XGBClassifier
 from scipy.stats import ks_2samp
 from sklearn.frozen import FrozenEstimator
+import joblib
+import os
+os.makedirs("models", exist_ok=True)
 from scorecard_pipeline import (
     load_and_process_data, 
     perform_time_split,
@@ -88,10 +91,14 @@ X_train_LR = train_lr[[f + "_WoE" for f in features_to_woe]]
 y_train_LR = train_lr['TARGET']
 X_test_LR = test_lr[[f + "_WoE" for f in features_to_woe]]
 y_test_LR = test_lr['TARGET']
+joblib.dump(y_test_LR,"models/y_test.pkl")
+joblib.dump(X_train_LR,"models/X_train_LR.pkl")
+joblib.dump(X_test_LR,"models/X_test_LR.pkl")
 
 # Train and calibrate the Logistic Regression model
 lr_model = train_scorecard_model(X_train_LR, y_train_LR)
 lr_model = calibrate_intercept(lr_model, y_train_LR.mean())
+joblib.dump(lr_model,"models/lr_model.pkl")
 
 # Generate probabilities 
 proba_logistic = lr_model.predict_proba(X_test_LR)[:, 1]
@@ -158,11 +165,13 @@ features_B = features_A + bureau_cols
 # Option A matrices (Full Train)
 X_train_A = train_df[features_A]
 X_test_A = test_df[features_A]
+joblib.dump(X_test_A,"models/X_test_A.pkl")
 
 # Option B matrices (Tuned Train + Calib Holdout)
 X_train_B = train_tune_df[features_B]
 X_calib_B = calib_df[features_B]
 X_test_B = test_df[features_B]
+joblib.dump(X_test_B,"models/X_test_B.pkl")
 
 # Base Estimator Setup (Independent weights)
 base_xgb_A = XGBClassifier(
@@ -216,7 +225,10 @@ search_B = RandomizedSearchCV(
 )
 
 search_A.fit(X_train_A, y_train_A)
+joblib.dump(search_A.best_estimator_, "models/xgb_A.pkl")
+
 search_B.fit(X_train_B, y_train_B)
+joblib.dump(search_B.best_estimator_, "models/xgb_B.pkl")
 
 print(f"Training set shape for Option A: {X_train_A.shape}")
 print(f"Training set shape for Option B: {X_train_B.shape}")
